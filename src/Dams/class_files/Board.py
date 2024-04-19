@@ -2,6 +2,7 @@ from Dams.include import *
 from Dams.class_files.Position import *
 from Dams.class_files.Colored import *
 from Dams.class_files.Point import *
+from Dams.class_files.Case import *
 
 class Board:
     def __init__(self, width, height):
@@ -12,6 +13,24 @@ class Board:
         self.pos_points = {} # {"bleu":(pos,pos), "red":(pos,pos)}
         self.nb_color = 0
 
+    # def __str__(self):
+    #     board_str = ""
+    #     for row in self.board:
+    #         row_str = ""
+    #         for cell in row:
+    #             if cell is None:
+    #                 row_str += " -"
+    #             else:
+    #                 if isinstance(cell, Point):
+    #                     color = cell.color[0].upper()
+    #                 elif isinstance(cell, Colored):
+    #                     color = cell.color[0].lower()
+    #                 else:
+    #                     color = "-"
+    #                 row_str += " " + color
+    #         board_str += row_str + "\n"
+    #     return board_str
+
     def __str__(self):
         board_str = ""
         for row in self.board:
@@ -20,10 +39,8 @@ class Board:
                 if cell is None:
                     row_str += " -"
                 else:
-                    if isinstance(cell, Point):
+                    if cell.color:
                         color = cell.color[0].upper()
-                    elif isinstance(cell, Colored):
-                        color = cell.color[0].lower()
                     else:
                         color = "-"
                     row_str += " " + color
@@ -31,7 +48,7 @@ class Board:
         return board_str
     
 
-    def create_class_board(self,flow_matrix):
+    def create_class_board_with_Point(self,flow_matrix):
         '''
         Create the class board using the given flow matrix.
 
@@ -79,3 +96,42 @@ class Board:
                     position = Position(j, i)
                     point = Point(position, color)
                     self.board[i][j] = point
+
+    def create_class_board_with_Case(self,flow_matrix):
+        '''
+        Create the class board using the given flow matrix.
+
+        Args:
+        - flow_matrix (List[List[str]]): The matrix representing the game board obtained from the JSON file of levels.
+        '''
+        self.make_pos_points(flow_matrix)
+        self.create_board_from_matrix_with_case(flow_matrix)
+
+    # créer un object Board depuis la matrice du json
+    def create_board_from_matrix_with_case(self, flow_matrix):
+        '''
+        Set up the board by placing colored points on it.
+
+        Args:
+        - flow_matrix (List[List[str]]): The matrix representing the game board obtained from the JSON file of levels.
+        '''
+        for i in range(self.height):
+            for j in range(self.width):
+                color = flow_matrix[i][j]
+
+                if color:
+                    case = Case(True, color)
+                    self.board[i][j] = case
+                else:
+                    case = Case(False, "")
+                    self.board[i][j] = case
+
+
+    def clean_board(self):
+        """
+        Clean the board by resetting the color of non-point cases to an empty string ("").
+        """
+        for row in self.board:
+            for case in row:
+                if not case.is_point:
+                    case.color = ""

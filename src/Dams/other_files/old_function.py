@@ -1,4 +1,53 @@
-from Dams.include import *
+# from dfs_v2.py
+def neighboring_available_cases_with_filling(board, pos, color):
+    """
+    Optimization:
+        This function have stupid filling (REMPLISSAGE).
+
+    Determines the available neighboring cases around a given position on the game board for a specific color.
+
+    Parameters:
+        - pos: A Position object representing the current position on the game board.
+        - color: A string representing the color to check for neighboring points.
+
+    Returns:
+        A tuple containing a boolean value and a list of positions:
+            - If a neighboring point of the specified color is found adjacent to the given position,
+              the function returns (True, [Position]), where Position represents the position of the found point.
+            - If no neighboring point of the specified color is found adjacent to the given position,
+              the function returns (False, [Position1, Position2, ...]), where Positions are instances of Position
+              class representing the neighboring positions that are accessible from the given position.
+    """
+    neighbors = []
+
+    if pos.x-1 >= 0:
+        if board.board[pos.y][pos.x-1] is None:
+            neighbors.append(Position(pos.x-1, pos.y))
+        elif isinstance(board.board[pos.y][pos.x-1], Point) and board.board[pos.y][pos.x-1].color == color and not board.board[pos.y][pos.x-1].connected:
+            return (True, [Position(pos.x-1, pos.y)])
+
+    if pos.y-1 >= 0:
+        if board.board[pos.y-1][pos.x] is None:
+            neighbors.append(Position(pos.x, pos.y-1))
+        elif isinstance(board.board[pos.y-1][pos.x], Point) and board.board[pos.y-1][pos.x].color == color and not board.board[pos.y-1][pos.x].connected:
+            return (True, [Position(pos.x, pos.y-1)])
+
+    if pos.x+1 < board.width:
+        if board.board[pos.y][pos.x+1] is None:
+            neighbors.append(Position(pos.x+1, pos.y))
+        elif isinstance(board.board[pos.y][pos.x+1], Point) and board.board[pos.y][pos.x+1].color == color and not board.board[pos.y][pos.x+1].connected:
+            return (True, [Position(pos.x+1, pos.y)])
+
+    if pos.y+1 < board.height:
+        if board.board[pos.y+1][pos.x] is None:
+            neighbors.append(Position(pos.x, pos.y+1))
+        elif isinstance(board.board[pos.y+1][pos.x], Point) and board.board[pos.y+1][pos.x].color == color and not board.board[pos.y+1][pos.x].connected:
+            return (True, [Position(pos.x, pos.y+1)])
+
+    return (False, neighbors)
+
+
+
 
 def brut_force(self, x, y):
 

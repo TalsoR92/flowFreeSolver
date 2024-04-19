@@ -15,4 +15,7 @@ class Position:
         return False
 
     def __str__(self):
-        return f"Position: (x={self.x}, y={self.y})"
+        return f"({self.x},{self.y})"
+
+    def __repr__(self):
+        return f"({self.x},{self.y})"
