@@ -5,7 +5,7 @@ class Case:
         self.is_connected = is_connected
 
     def __str__(self):
-        return f"Point: (is_point={self.is_point}, color={self.color}, connected={self.connected})"
+        return f"Point: (is_point={self.is_point}, color={self.color}, connected={self.is_connected})"
     
     def __json__(self):
         return {'x': self.x, 'y': self.y}

@@ -11,7 +11,7 @@ from Titi.main import main as main_titi
 from Toitoine.main import main as main_toitoine
 
 def run_all_level(name_dir, size_start=5, size_end=9, lvl_start=1, lvl_end=30):
-    total_exec_times = []
+    tot_exec_times = []
 
     for size in range(size_start, size_end + 1):
         level_exec_times = []
@@ -29,7 +29,7 @@ def run_all_level(name_dir, size_start=5, size_end=9, lvl_start=1, lvl_end=30):
             start_time = time.time()
 
             if name_dir == "Dams":
-                main_dams(flow_matrix, size)  # Appeler la fonction main de Dams
+                main_dams(flow_matrix, size, level)  # Appeler la fonction main de Dams
             elif name_dir == "Titi":
                 main_titi(flow_matrix, size)  # Appeler la fonction main de Titi
             elif name_dir == "Toitoine":
@@ -41,10 +41,10 @@ def run_all_level(name_dir, size_start=5, size_end=9, lvl_start=1, lvl_end=30):
             exec_time = time.time() - start_time
             level_exec_times.append(exec_time)
 
-        total_exec_times.append(level_exec_times)
+        tot_exec_times.append(level_exec_times)
         lvl_start = 1
 
-    # print_stats(name_dir, exec_time, size_start, size_end)
+    print_stats(name_dir, tot_exec_times, size_start, size_end)
 
 
 def run_one_level(name_dir, size_board, num_level):
@@ -58,7 +58,7 @@ def run_one_level(name_dir, size_board, num_level):
     start_time = time.time()
 
     if name_dir == "Dams":
-        main_dams(flow_matrix, size_board)  # Appeler la fonction main de Dams
+        main_dams(flow_matrix, size_board, num_level)  # Appeler la fonction main de Dams
     elif name_dir == "Titi":
         main_titi(flow_matrix, size_board)  # Appeler la fonction main de Titi
     elif name_dir == "Toitoine":
@@ -70,9 +70,8 @@ def run_one_level(name_dir, size_board, num_level):
     exec_time = time.time() - start_time
 
 
-    # print(f"Board {size_board}*{size_board} level {num_level} exec time:")
-    # print(exec_time)
-    # print()
+    print(f"Board {size_board}*{size_board} level {num_level} exec time: {exec_time:.6f} secondes\n")
+    print()
 
     return exec_time
         
@@ -107,7 +106,14 @@ def print_stats(name, execution_times, size_start=5, size_end=9):
 
 def main():
     # run_all_level("Dams")
-    run_one_level("Dams", 5, 1)
-    return
+    # run_all_level("Dams", 9, 9, 15)
+    run_all_level("Dams", 8, 8)
+    # run_one_level("Dams", 7, 7)
+    # print("\n----------------------------------------\n")
+    # run_one_level("Dams", 6, 3)
+
+    # for i in range(1, 3):
+    # run_one_level("Dams", 9, 2)
+    # return
 
 main()

@@ -7,6 +7,75 @@ from collections import deque
 import bisect
 from copy import deepcopy
 
+def count_points_around(board, pos):
+    """
+    Count the number of points around a given position on the board.
+    """
+    count = 0
+    if pos.y > 0:
+        if board.board[pos.y - 1][pos.x].is_point:
+            count += 1
+        if pos.x < board.width - 1 and board.board[pos.y - 1][pos.x + 1].is_point:
+            count += 1
+        if pos.x > 0 and board.board[pos.y - 1][pos.x - 1].is_point:
+            count += 1
+    if pos.y < board.height - 1:
+        if board.board[pos.y + 1][pos.x].is_point:
+            count += 1
+        if pos.x < board.width - 1 and board.board[pos.y + 1][pos.x + 1].is_point:
+            count += 1
+        if pos.x > 0 and board.board[pos.y + 1][pos.x - 1].is_point:
+            count += 1
+    if pos.x < board.width - 1 and board.board[pos.y][pos.x + 1].is_point:
+        count += 1
+    if pos.x > 0 and board.board[pos.y][pos.x - 1].is_point:
+        count += 1
+    # print(count)
+    # print(f"pos: {pos}")
+    # if count >= 2:
+    #     print(board)
+    return count
+
+
+def count_things_around(board, pos):
+    """
+    Count the number of points or border around a given position on the board.
+    """
+    count = 0
+    border = False
+    if pos.y > 0:
+        if board.board[pos.y - 1][pos.x].is_point:
+            count += 1
+        if pos.x < board.width - 1 and board.board[pos.y - 1][pos.x + 1].is_point:
+            count += 1
+        if pos.x > 0 and board.board[pos.y - 1][pos.x - 1].is_point:
+            count += 1
+    else:
+        border = True
+    if pos.y < board.height - 1:
+        if board.board[pos.y + 1][pos.x].is_point:
+            count += 1
+        if pos.x < board.width - 1 and board.board[pos.y + 1][pos.x + 1].is_point:
+            count += 1
+        if pos.x > 0 and board.board[pos.y + 1][pos.x - 1].is_point:
+            count += 1
+    else:
+        border = True
+    if pos.x < board.width - 1 and board.board[pos.y][pos.x + 1].is_point:
+        count += 1
+    else:
+        border = True
+    if pos.x > 0 and board.board[pos.y][pos.x - 1].is_point:
+        count += 1
+    else:
+        border = True
+    # print(count)
+    # print(f"pos: {pos}")
+    # if count >= 2:
+    #     print(board)
+    return count + int(border)
+
+
 def find_all_shortest_paths(board: Board) -> Dict[str, List[Position]]:
     """
     Find the shortest paths from each point of different colors to their respective pairs using BFS.
@@ -16,14 +85,13 @@ def find_all_shortest_paths(board: Board) -> Dict[str, List[Position]]:
               If no path exists for a color, its value will be None.
     """
     shortest_paths = {}
-    
+
     # Parcourir tous les points de la board
     for color, points_pos in board.pos_points.items():
         shortest_path = find_shortest_path(board, points_pos[0], color)
         shortest_paths[color] = shortest_path
-    
-    return shortest_paths
 
+    return shortest_paths
 
 def find_shortest_path(board: Board, start_pos: Position, color: str) -> List[Position]:
     """
@@ -95,6 +163,17 @@ def find_neighbors_for_BFS(board: Board, queue: Deque[List[Position]], pos: Posi
 
     return []
 
+
+def is_all_colors_list_reachable(board: Board, list_expect_colors: List[List[Position]]) -> bool:
+    """
+    Determine if all colors points on list_expect_colors on the board are reachable.
+    """
+    for color_positions in list_expect_colors:
+        color = board.board[color_positions[0].y][color_positions[0].x].color
+        if not is_color_reachable(board, color_positions[0], color_positions[1], color):
+            return False
+    return True
+
 def is_all_colors_reachable(board: Board, expect_color: str="") -> bool:
     """
     Determine if all colors points on the board are reachable.
@@ -104,7 +183,6 @@ def is_all_colors_reachable(board: Board, expect_color: str="") -> bool:
         if color != expect_color and not is_color_reachable(board, pos1, pos2, color):
             return False
     return True
-
 
 def is_color_reachable(board: Board, start_pos: Position, end_pos: Position, color: str) -> bool:
     """
@@ -161,7 +239,6 @@ def find_neighbors_heuristic(board: Board, curr_pos: Position, list_cases: List[
             bottom_case.color = "tmp"   # Ajoute la couleur à la case
             bisect.insort(list_cases, (bottom_pos, manhattan_distance(bottom_pos, end_pos)), key=lambda x: x[1])
 
-
 def manhattan_distance(pos1, pos2):
     """
     Calculate the Manhattan distance between two positions.
@@ -176,4 +253,3 @@ def clear_tmp_color(board):
         for cell in row:
             if cell.color == "tmp":
                 cell.color = ""
-    

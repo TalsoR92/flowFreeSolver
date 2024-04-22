@@ -13,24 +13,6 @@ class Board:
         self.pos_points = {} # {"bleu":(pos,pos), "red":(pos,pos)}
         self.nb_color = 0
 
-    # def __str__(self):
-    #     board_str = ""
-    #     for row in self.board:
-    #         row_str = ""
-    #         for cell in row:
-    #             if cell is None:
-    #                 row_str += " -"
-    #             else:
-    #                 if isinstance(cell, Point):
-    #                     color = cell.color[0].upper()
-    #                 elif isinstance(cell, Colored):
-    #                     color = cell.color[0].lower()
-    #                 else:
-    #                     color = "-"
-    #                 row_str += " " + color
-    #         board_str += row_str + "\n"
-    #     return board_str
-
     def __str__(self):
         board_str = ""
         for row in self.board:

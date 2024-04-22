@@ -1,4 +1,5 @@
 from Dams.class_files.Board import *
+from Dams.class_files.Opti import *
 from Dams.printer.printer import *
 from Dams.algo.opti_v1 import *
 from Dams.include import *
@@ -73,55 +74,54 @@ def neighboring_available_cases(board, pos, color):
     return (False, neighbors)
 
 
-def dfs_dot_all_path(board, pos, color, current_path, all_paths):
+def dfs_for_all_path(board, pos, color, current_path, all_paths, opti):
     current_path.append(pos)
 
     test, neighbors = neighboring_available_cases(board, pos, color)
-    # print(f"pos = {pos} and neighbors = {neighbors}")
-    if test:  # and is_all_colors_reachable(board):
-        current_path.append(neighbors[0])
 
-        if is_all_colors_reachable(board, color):
+    if test:
+        current_path.append(neighbors[0])
+        if opti.check_reachable.value < CheckReachable.END_PATH.value or is_all_colors_reachable(board, color):
             all_paths.append((current_path.copy()))
 
         current_path.pop()
     else:
         for pos in neighbors:
-            # print(f" chosen = {pos} || curr_path = {current_path} \n")
-
             board.board[pos.y][pos.x].color = color
-            dfs_dot_all_path(board, pos, color, current_path, all_paths)
+            if (not (opti.check_reachable == CheckReachable.NEAR_2_POINTS and count_points_around(board, pos) >= 2)
+            and opti.check_reachable != CheckReachable.EVERY_CASE
+            and not (opti.check_reachable == CheckReachable.NEAR_3_THINGS and count_things_around(board, pos) >= 3)) \
+            or is_all_colors_reachable(board, color):
+                dfs_for_all_path(board, pos, color, current_path, all_paths, opti)
             board.board[pos.y][pos.x].color = ""
 
     current_path.pop()
 
 
-def create_all_paths(board):
+def create_all_paths(board, opti):
     all_paths = []
-    start = 4
-    print(f"nb color : {len(board.pos_points)}")
+
     for color in board.pos_points:
-        print(f"color = {color} || pos = {board.pos_points[color]}")
+
         color_paths = []
         curr_color_pos = Position(board.pos_points[color][0].x, board.pos_points[color][0].y)
         board.board[curr_color_pos.y][curr_color_pos.x].is_connected = True
-        # print(color)
-        dfs_dot_all_path(board, curr_color_pos, color, [], color_paths)
+
+        dfs_for_all_path(board, curr_color_pos, color, [], color_paths, opti)
         
-        all_paths.append(deepcopy(color_paths))
-    print("sahhhh")
-    print(f"nb list : {count_second_level_lists(all_paths)}\n\n")
-    print(all_paths)
+        all_paths.append(color_paths.copy())
 
-    res = find_valid_combinations(all_paths)
-    print()
-    print(f"nb list : {len(res)}\n\n")
-    print("find_valid_combinations(all_paths)")
-    print(res)
-    # print(board.board[0][1].color)
-    # print(f"first color : {board.pos_points['#']}")
+    return all_paths
 
-    apply_valid_combinations(board, res)
+
+def find_and_apply_valid_combinations(board, all_paths, opti):
+    """
+    Find and apply valid combinations of paths on the board.
+    """
+    valid_combos = find_valid_combinations_with_board(all_paths, len(all_paths), [], 0, [], board, opti)
+    apply_valid_combinations(board, valid_combos)
+
+
 
 def paths_intersect(path1, path2):
     """
@@ -131,22 +131,6 @@ def paths_intersect(path1, path2):
         if pos in path2:
             return True
     return False
-
-def find_valid_combinations(all_paths, current_combo=[], index=0, valid_combos=[]):
-    """
-    Recursively find valid combinations of paths.
-    """
-    if index == len(all_paths):
-        valid_combos.append(current_combo.copy())
-        return
-
-    for path in all_paths[index]:
-        if all(not paths_intersect(path, other_path) for other_path in current_combo):
-            current_combo.append(path)
-            find_valid_combinations(all_paths, current_combo, index + 1, valid_combos)
-            current_combo.pop()
-
-    return valid_combos
 
 def count_second_level_lists(lst):
     """
@@ -165,7 +149,6 @@ def count_second_level_lists(lst):
                 count += 1
     return count
 
-
 def apply_valid_combinations(board, valid_combos):
     """
     Apply valid combinations of paths on the board.
@@ -173,6 +156,58 @@ def apply_valid_combinations(board, valid_combos):
     for combo in valid_combos:
         for path in combo:
             color = board.board[path[0].y][path[0].x].color  # Couleur du premier point du chemin
-            print(f"pos = {path[0]}  ||  color = {color}")
+
             for pos in path:
                 board.board[pos.y][pos.x].color = color  # Mise à jour de la couleur sur la planche
+
+def find_valid_combinations(all_paths, nb_paths, current_combo, index, valid_combos):
+    """
+    Recursively find valid combinations of paths.
+    """
+    if index == nb_paths:
+        valid_combos.append(current_combo.copy())
+        return
+
+    for path in all_paths[index]:
+        if all(not paths_intersect(path, other_path) for other_path in current_combo):
+            current_combo.append(path)
+            find_valid_combinations(all_paths, nb_paths, current_combo, index + 1, valid_combos)
+            current_combo.pop()
+
+    return valid_combos
+
+def find_valid_combinations_with_board(all_paths, nb_paths, current_combo, index, valid_combos, board, opti):
+    """
+    Recursively find valid combinations of paths.
+    """
+    if index == nb_paths:
+        valid_combos.append(current_combo.copy())
+        return
+
+    for path in all_paths[index]:
+        # Vérifier si chaque élément de path dans la board a une couleur vide
+        if all(board.board[pos.y][pos.x].color == "" for pos in path[1:-1]):
+
+            curr_color = board.board[path[0].y][path[0].x].color
+            if index == 0 or opti.check_reachable.value < CheckReachable.END_PATH.value \
+            or is_all_colors_list_reachable(board, current_combo + [path]):
+            
+                # Ajouter chaque élément de path à la board
+                for pos in path[1:-1]:
+                    board.board[pos.y][pos.x].color = curr_color
+                board.board[path[-1].y][path[-1].x].is_connected = True  # Connecter le dernier point du chemin
+                board.board[path[0].y][path[0].x].is_connected = True    # Connecter le premier point du chemin
+
+                # Appel récursif
+                current_combo.append(path)
+                find_valid_combinations_with_board(all_paths, nb_paths, current_combo, index + 1, valid_combos, board, opti)
+                current_combo.pop()
+
+                # Retirer chaque élément de path de la board après l'appel récursif
+                for pos in path[1:-1]:
+                    board.board[pos.y][pos.x].color = ""  # Réinitialiser la couleur à vide
+                board.board[path[-1].y][path[-1].x].is_connected = False  # Déconnecter le dernier point du chemin
+                board.board[path[0].y][path[0].x].is_connected = False    # Déconnecter le premier point du chemin
+
+    return valid_combos
+

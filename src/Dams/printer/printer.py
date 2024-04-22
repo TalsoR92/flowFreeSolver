@@ -11,3 +11,12 @@ def print_all_paths_aligned(positions):
 
         print()
         print()  # Ajout d'un saut de ligne après l'impression de chaque liste de positions
+
+def print_board(board: Board):
+    for row in board.board:
+        for cell in row:
+            if cell.color:
+                print(cell)
+                print()
+        print()
+
