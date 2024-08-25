@@ -93,6 +93,9 @@ def print_stats(name, execution_times, size_start=5, size_end=9):
         # Calculer le maximum et le minimum
         max_time = max(times)
         min_time = min(times)
+        
+        # Calculer le temps total
+        total_time = sum(times)
 
         # Afficher les statistiques
         print(f"\nBoard {size_start + i - 1}*{size_start + i - 1}:")
@@ -101,13 +104,15 @@ def print_stats(name, execution_times, size_start=5, size_end=9):
 
         print(f"Maximum: {max_time:.6f} secondes")
         print(f"Minimum: {min_time:.6f} secondes\n")
+        
+        print(f"\nTemps total: {total_time:.6f} secondes\n")
         print("----------------------------------------")
 
 
 def main():
     # run_all_level("Dams")
     # run_all_level("Dams", 9, 9, 15)
-    run_all_level("Dams", 8, 8)
+    run_all_level("Dams", 9, 9, 1, 3)
     # run_one_level("Dams", 7, 7)
     # print("\n----------------------------------------\n")
     # run_one_level("Dams", 6, 3)

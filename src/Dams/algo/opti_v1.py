@@ -1,115 +1,11 @@
 from Dams.class_files.Board import *
 from Dams.printer.printer import *
-from Dams.algo.dfs_v2 import *
+from Dams.algo.dfs_on_board import *
 from Dams.include import *
 from typing import List, Any, Tuple, Deque, Dict, Optional
 from collections import deque
 import bisect
 from copy import deepcopy
-
-def count_points_around(board, pos):
-    """
-    Count the number of points around a given position on the board.
-    """
-    count = 0
-    if pos.y > 0:
-        if board.board[pos.y - 1][pos.x].is_point:
-            count += 1
-        if pos.x < board.width - 1 and board.board[pos.y - 1][pos.x + 1].is_point:
-            count += 1
-        if pos.x > 0 and board.board[pos.y - 1][pos.x - 1].is_point:
-            count += 1
-    if pos.y < board.height - 1:
-        if board.board[pos.y + 1][pos.x].is_point:
-            count += 1
-        if pos.x < board.width - 1 and board.board[pos.y + 1][pos.x + 1].is_point:
-            count += 1
-        if pos.x > 0 and board.board[pos.y + 1][pos.x - 1].is_point:
-            count += 1
-    if pos.x < board.width - 1 and board.board[pos.y][pos.x + 1].is_point:
-        count += 1
-    if pos.x > 0 and board.board[pos.y][pos.x - 1].is_point:
-        count += 1
-    # print(count)
-    # print(f"pos: {pos}")
-    # if count >= 2:
-    #     print(board)
-    return count
-
-
-def count_things_around(board, pos):
-    """
-    Count the number of points or border around a given position on the board.
-    """
-    count = 0
-    border = False
-    if pos.y > 0:
-        if board.board[pos.y - 1][pos.x].is_point:
-            count += 1
-        if pos.x < board.width - 1 and board.board[pos.y - 1][pos.x + 1].is_point:
-            count += 1
-        if pos.x > 0 and board.board[pos.y - 1][pos.x - 1].is_point:
-            count += 1
-    else:
-        border = True
-    if pos.y < board.height - 1:
-        if board.board[pos.y + 1][pos.x].is_point:
-            count += 1
-        if pos.x < board.width - 1 and board.board[pos.y + 1][pos.x + 1].is_point:
-            count += 1
-        if pos.x > 0 and board.board[pos.y + 1][pos.x - 1].is_point:
-            count += 1
-    else:
-        border = True
-    if pos.x < board.width - 1 and board.board[pos.y][pos.x + 1].is_point:
-        count += 1
-    else:
-        border = True
-    if pos.x > 0 and board.board[pos.y][pos.x - 1].is_point:
-        count += 1
-    else:
-        border = True
-    # print(count)
-    # print(f"pos: {pos}")
-    # if count >= 2:
-    #     print(board)
-    return count + int(border)
-
-
-def find_all_shortest_paths(board: Board) -> Dict[str, List[Position]]:
-    """
-    Find the shortest paths from each point of different colors to their respective pairs using BFS.
-
-    Returns:
-        dict: A dictionary containing each color and its shortest path from the starting position to its pair.
-              If no path exists for a color, its value will be None.
-    """
-    shortest_paths = {}
-
-    # Parcourir tous les points de la board
-    for color, points_pos in board.pos_points.items():
-        shortest_path = find_shortest_path(board, points_pos[0], color)
-        shortest_paths[color] = shortest_path
-
-    return shortest_paths
-
-def find_shortest_path(board: Board, start_pos: Position, color: str) -> List[Position]:
-    """
-    Find the shortest path from a point of the given color to its pair using BFS.
-    """
-    # Initialisation de la file pour la BFS
-    queue = deque([[start_pos]])
-    board.board[start_pos.y][start_pos.x].is_connected = True
-    # Parcours BFS pour trouver le chemin le plus court
-    while queue:
-        curr_path = queue.popleft()
-
-        # Appeler neighboring_available_cases pour mettre à jour la file avec les positions voisines
-        res = find_neighbors_for_BFS(board, queue, curr_path[-1], color, curr_path)
-        if res:
-            return res
-    # Si aucun chemin n'a été trouvé, retourner None
-    return []
 
 def find_neighbors_for_BFS(board: Board, queue: Deque[List[Position]], pos: Position, color: str, path: List[Position]) -> List[Position]:
     """
@@ -125,8 +21,8 @@ def find_neighbors_for_BFS(board: Board, queue: Deque[List[Position]], pos: Posi
         curr_pos = Position(pos.x-1, pos.y)
         curr_case = board.board[curr_pos.y][curr_pos.x]
         if not curr_case.is_point:
-            if curr_case.color != color:
-                board.board[curr_pos.y][curr_pos.x].color = color
+            if not curr_case.color:
+                board.board[curr_pos.y][curr_pos.x].color = "tmp"
                 queue.append(path + [curr_pos])
         elif curr_case.is_right_point(color):
             return path + [curr_pos]
@@ -135,8 +31,8 @@ def find_neighbors_for_BFS(board: Board, queue: Deque[List[Position]], pos: Posi
         curr_pos = Position(pos.x, pos.y - 1)
         curr_case = board.board[curr_pos.y][curr_pos.x]
         if not curr_case.is_point:
-            if curr_case.color != color:
-                board.board[curr_pos.y][curr_pos.x].color = color
+            if not curr_case.color:
+                board.board[curr_pos.y][curr_pos.x].color = "tmp"
                 queue.append(path + [curr_pos])
         elif curr_case.is_right_point(color):
             return path + [curr_pos]
@@ -145,8 +41,8 @@ def find_neighbors_for_BFS(board: Board, queue: Deque[List[Position]], pos: Posi
         curr_pos = Position(pos.x + 1, pos.y)
         curr_case = board.board[curr_pos.y][curr_pos.x]
         if not curr_case.is_point:
-            if curr_case.color != color:
-                board.board[curr_pos.y][curr_pos.x].color = color
+            if not curr_case.color:
+                board.board[curr_pos.y][curr_pos.x].color = "tmp"
                 queue.append(path + [curr_pos])
         elif curr_case.is_right_point(color):
             return path + [curr_pos]
@@ -155,13 +51,52 @@ def find_neighbors_for_BFS(board: Board, queue: Deque[List[Position]], pos: Posi
         curr_pos = Position(pos.x, pos.y + 1)
         curr_case = board.board[curr_pos.y][curr_pos.x]
         if not curr_case.is_point:
-            if curr_case.color != color:
-                board.board[curr_pos.y][curr_pos.x].color = color
+            if not curr_case.color:
+                board.board[curr_pos.y][curr_pos.x].color = "tmp"
                 queue.append(path + [curr_pos])
         elif curr_case.is_right_point(color):
             return path + [curr_pos]
 
     return []
+    
+def find_shortest_path(board: Board, start_pos: Position, color: str) -> List[Position]:
+    """
+    Find the shortest path from a point of the given color to its pair using BFS.
+    """
+    # Initialisation de la file pour la BFS
+    queue = deque([[start_pos]])
+    board.board[start_pos.y][start_pos.x].is_connected = True
+    # Parcours BFS pour trouver le chemin le plus court
+    while queue:
+        curr_path = queue.popleft()
+
+        # Appeler neighboring_available_cases pour mettre à jour la file avec les positions voisines
+        res = find_neighbors_for_BFS(board, queue, curr_path[-1], color, curr_path)
+        if res:
+            board.board[start_pos.y][start_pos.x].is_connected = False
+            return res
+
+    board.board[start_pos.y][start_pos.x].is_connected = True
+    # Si aucun chemin n'a été trouvé, retourner None
+    return []
+
+def find_all_shortest_paths(board: Board) -> Dict[str, List[Position]]:
+    """
+    Find the shortest paths from each point of different colors to their respective pairs using BFS.
+
+    Returns:
+        dict: A dictionary containing each color and its shortest path from the starting position to its pair.
+              If no path exists for a color, its value will be None.
+    """
+    shortest_paths = {}
+
+    # Parcourir tous les points de la board
+    for color, points_pos in board.pos_points.items():
+        shortest_path = find_shortest_path(board, points_pos[0], color)
+        shortest_paths[color] = shortest_path
+        clear_tmp_color(board) # Clear 'tmp' colors after each BFS search
+
+    return shortest_paths
 
 
 def is_all_colors_list_reachable(board: Board, list_expect_colors: List[List[Position]]) -> bool:
@@ -253,3 +188,46 @@ def clear_tmp_color(board):
         for cell in row:
             if cell.color == "tmp":
                 cell.color = ""
+
+
+def is_all_colors_reachable_shortest_paths_first(board: Board, all_shortest_paths: Dict[str, List[Position]]) -> bool:
+    """
+    Verify if all color pairs on the board can be reliably connected using their shortest paths.
+    
+    Args:
+        board (Board): The game board containing all points and connections.
+        all_shortest_paths (Dict[str, List[Position]]): A dictionary with each color's shortest path.
+
+    Returns:
+        bool: True if all color pairs are reliably connected, False otherwise.
+    """
+     
+    for color, path in all_shortest_paths.items():
+        # Retrieve the starting and ending positions for the current color
+        start_pos, end_pos = board.pos_points[color]
+        
+        # Check if path is None or empty, and stop execution if so
+        if path is None or not path:
+            raise RuntimeError(f"No valid path found for color: {color}")
+        
+        # Check if the start or end position is already connected
+        if board.board[start_pos.y][start_pos.x].is_connected or board.board[end_pos.y][end_pos.x].is_connected:
+            continue  # Skip this path if the start or end position is already connected
+        
+        len_path = len(path)
+
+        # Verify that each position in the path has the correct color or is None
+        for i in range(1, len_path - 1):
+            pos = path[i]
+            if board.board[pos.y][pos.x].color:
+                # If a position on the path has a different color, check if the points are still reachable
+                if not is_color_reachable(board, start_pos, end_pos, color):
+                    # print("on passe ici")
+                    # print(board)
+                    return False
+                else:
+                    # print("on passe la")
+                    # print(board)
+                    break
+
+    return True

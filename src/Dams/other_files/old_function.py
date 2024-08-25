@@ -1,4 +1,4 @@
-# from dfs_v2.py
+# from dfs_on_board.py
 def neighboring_available_cases_with_filling(board, pos, color):
     """
     Optimization:

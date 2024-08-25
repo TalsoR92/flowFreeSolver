@@ -2,6 +2,7 @@ from Dams.class_files.Board import *
 from Dams.class_files.Opti import *
 from Dams.printer.printer import *
 from Dams.algo.opti_v1 import *
+from Dams.algo.tools import *
 from Dams.include import *
 from typing import List, Any, Tuple, Deque, Dict, Optional
 from copy import deepcopy
@@ -73,45 +74,65 @@ def neighboring_available_cases(board, pos, color):
             return (True, [Position(pos.x, pos.y + 1)])
     return (False, neighbors)
 
-
-def dfs_for_all_path(board, pos, color, current_path, all_paths, opti):
+def dfs_for_all_path(board, pos, color, current_path, all_paths, opti, all_shortest_paths):
     current_path.append(pos)
 
     test, neighbors = neighboring_available_cases(board, pos, color)
 
     if test:
         current_path.append(neighbors[0])
-        if opti.check_reachable.value < CheckReachable.END_PATH.value or is_all_colors_reachable(board, color):
-            all_paths.append((current_path.copy()))
+        if opti.check_reachable.value >= CheckReachable.END_PATH.value:
+            if opti.reachability_check_method == ReachabilityCheckMethod.SHORTEST_PATH_FIRST:
+                if is_all_colors_reachable_shortest_paths_first(board, all_shortest_paths):
+                    all_paths.append((current_path.copy()))
+            elif is_all_colors_reachable(board, color):
+                all_paths.append((current_path.copy()))            
 
         current_path.pop()
     else:
         for pos in neighbors:
             board.board[pos.y][pos.x].color = color
-            if (not (opti.check_reachable == CheckReachable.NEAR_2_POINTS and count_points_around(board, pos) >= 2)
-            and opti.check_reachable != CheckReachable.EVERY_CASE
-            and not (opti.check_reachable == CheckReachable.NEAR_3_THINGS and count_things_around(board, pos) >= 3)) \
-            or is_all_colors_reachable(board, color):
-                dfs_for_all_path(board, pos, color, current_path, all_paths, opti)
+            if (opti.check_reachable == CheckReachable.NEAR_2_POINTS and count_points_around(board, pos) >= 2) \
+                or (opti.check_reachable == CheckReachable.EVERY_CASE) \
+                or (opti.check_reachable == CheckReachable.NEAR_3_THINGS and count_things_around(board, pos) >= 3):
+                if opti.reachability_check_method == ReachabilityCheckMethod.SHORTEST_PATH_FIRST:
+                    if is_all_colors_reachable_shortest_paths_first(board, all_shortest_paths):
+                        dfs_for_all_path(board, pos, color, current_path, all_paths, opti, all_shortest_paths)
+                elif is_all_colors_reachable(board, color):
+                    dfs_for_all_path(board, pos, color, current_path, all_paths, opti, all_shortest_paths)
+            else:
+                dfs_for_all_path(board, pos, color, current_path, all_paths, opti, all_shortest_paths)
+                
             board.board[pos.y][pos.x].color = ""
 
     current_path.pop()
 
-
 def create_all_paths(board, opti):
     all_paths = []
-
+    
+    all_shortest_paths = {}
+    if opti.reachability_check_method == ReachabilityCheckMethod.SHORTEST_PATH_FIRST:
+        all_shortest_paths = find_all_shortest_paths(board)
+    # print(all_shortest_paths)
+    
+    # Print the is_connected status for each cell in the board
+    # print("Initial is_connected status for the board:")
+    # for y in range(board.height):
+    #     for x in range(board.width):
+    #         print(f"Position ({x}, {y}): is_connected = {board.board[y][x].is_connected}")
     for color in board.pos_points:
 
         color_paths = []
         curr_color_pos = Position(board.pos_points[color][0].x, board.pos_points[color][0].y)
         board.board[curr_color_pos.y][curr_color_pos.x].is_connected = True
 
-        dfs_for_all_path(board, curr_color_pos, color, [], color_paths, opti)
+        dfs_for_all_path(board, curr_color_pos, color, [], color_paths, opti, all_shortest_paths)
         
         all_paths.append(color_paths.copy())
+        board.board[curr_color_pos.y][curr_color_pos.x].is_connected = False
 
     return all_paths
+
 
 
 def find_and_apply_valid_combinations(board, all_paths, opti):
@@ -121,33 +142,6 @@ def find_and_apply_valid_combinations(board, all_paths, opti):
     valid_combos = find_valid_combinations_with_board(all_paths, len(all_paths), [], 0, [], board, opti)
     apply_valid_combinations(board, valid_combos)
 
-
-
-def paths_intersect(path1, path2):
-    """
-    Check if two paths intersect.
-    """
-    for pos in path1:
-        if pos in path2:
-            return True
-    return False
-
-def count_second_level_lists(lst):
-    """
-    Count the number of lists at the second level in a list of lists of lists.
-
-    Parameters:
-        lst (list): The list of lists of lists.
-
-    Returns:
-        int: The number of lists at the second level.
-    """
-    count = 0
-    for sublist in lst:
-        for item in sublist:
-            if isinstance(item, list):
-                count += 1
-    return count
 
 def apply_valid_combinations(board, valid_combos):
     """
@@ -160,21 +154,6 @@ def apply_valid_combinations(board, valid_combos):
             for pos in path:
                 board.board[pos.y][pos.x].color = color  # Mise à jour de la couleur sur la planche
 
-def find_valid_combinations(all_paths, nb_paths, current_combo, index, valid_combos):
-    """
-    Recursively find valid combinations of paths.
-    """
-    if index == nb_paths:
-        valid_combos.append(current_combo.copy())
-        return
-
-    for path in all_paths[index]:
-        if all(not paths_intersect(path, other_path) for other_path in current_combo):
-            current_combo.append(path)
-            find_valid_combinations(all_paths, nb_paths, current_combo, index + 1, valid_combos)
-            current_combo.pop()
-
-    return valid_combos
 
 def find_valid_combinations_with_board(all_paths, nb_paths, current_combo, index, valid_combos, board, opti):
     """
@@ -210,4 +189,3 @@ def find_valid_combinations_with_board(all_paths, nb_paths, current_combo, index
                 board.board[path[0].y][path[0].x].is_connected = False    # Déconnecter le premier point du chemin
 
     return valid_combos
-

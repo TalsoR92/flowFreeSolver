@@ -1,6 +1,5 @@
 from Dams.include import *
 from Dams.class_files.Position import *
-from Dams.class_files.Colored import *
 from Dams.class_files.Point import *
 from Dams.class_files.Case import *
 

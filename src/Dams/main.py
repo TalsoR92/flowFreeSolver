@@ -51,11 +51,11 @@ def main(flow_matrix, size_board, num_level):
 
     # print(board)
 
-    opti = Opti(CheckReachable.NEAR_3_THINGS)
+    opti = Opti(CheckReachable.NEAR_2_POINTS, ReachabilityCheckMethod.SHORTEST_PATH_FIRST)
     print("opti.check_reachable:", opti.check_reachable, "\n")
     all_paths = create_all_paths(board, opti)
     print("nb_paths:", sum_list(all_paths), "\n")
 
     find_and_apply_valid_combinations(board, all_paths, opti)
-    # print(board)
+    print(board)
     # create_response_json(board, num_level, size_board, size_board)
