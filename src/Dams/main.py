@@ -1,7 +1,8 @@
 from Dams.include import *
 from Dams.class_files.Board import *
-import json
-
+import cProfile
+import pstats
+import io
 
 def create_response_json(board, num_level, width, height):
     """
@@ -42,20 +43,33 @@ def sum_list(all_paths):
     return total_paths
 
 def main(flow_matrix, size_board, num_level):
-    # Création d'une instance de Board
-    board = Board(width=size_board, height=size_board)
+    profiler = cProfile.Profile()  # Create a profile to capture statistics
+    profiler.enable()
 
-    # Appel de la méthode create_class_board avec la flow_matrix donnée
-    # print(flow_matrix)
-    board.create_class_board_with_Case(flow_matrix)
+    try:
+        counter.__init__()  # Reset the counter for statistics
 
-    # print(board)
+        board = Board(width=size_board, height=size_board)  # Create an instance of Board
+        board.create_class_board_with_Case(flow_matrix)  # Call the create_class_board method with the given flow_matrix
 
-    opti = Opti(CheckReachable.NEAR_2_POINTS, ReachabilityCheckMethod.SHORTEST_PATH_FIRST)
-    print("opti.check_reachable:", opti.check_reachable, "\n")
-    all_paths = create_all_paths(board, opti)
-    print("nb_paths:", sum_list(all_paths), "\n")
+        opti = Opti()  # Create an instance of Opti
+        
+        opti.check_reachable = CheckReachable.NEAR_2_POINTS
+        opti.reachability_check_method = ReachabilityCheckMethod.SHORTEST_PATH_FIRST
+        opti.path_testing_order = PathTestingOrder.NORMAL  
+        opti.border_cell_accessibility = BorderCellAccessibility.CHECK
+        
+        all_paths = create_all_paths(board, opti)  # Call the method to create all paths
+        print("nb_paths:", sum_list(all_paths), "\n")
 
-    find_and_apply_valid_combinations(board, all_paths, opti)
-    print(board)
-    # create_response_json(board, num_level, size_board, size_board)
+        find_and_apply_valid_combinations(board, all_paths, opti)  # Find and apply valid combinations
+        print(board)
+        # create_response_json(board, num_level, size_board, size_board)  # Call (commented) method to create the response JSON
+    
+    finally:
+        profiler.disable()  # Disable profiling
+
+        profile_filename = f'Dams/profiling_files/profiling_results_{size_board}_{num_level}.prof'  # Name the profiling file
+        profiler.dump_stats(profile_filename)  # Save the profiling results
+        
+        print(f"Profiling saved to {profile_filename}")

@@ -3,10 +3,11 @@ from Dams.class_files.Opti import *
 from Dams.printer.printer import *
 from Dams.algo.opti_v1 import *
 from Dams.algo.tools import *
+from Dams.algo.shortest_paths import *
 from Dams.include import *
 from typing import List, Any, Tuple, Deque, Dict, Optional
 from copy import deepcopy
-
+from Dams.class_files.Counter import *
 
 def neighboring_available_cases(board, pos, color):
     """
@@ -86,12 +87,15 @@ def dfs_for_all_path(board, pos, color, current_path, all_paths, opti, all_short
                 if is_all_colors_reachable_shortest_paths_first(board, all_shortest_paths):
                     all_paths.append((current_path.copy()))
             elif is_all_colors_reachable(board, color):
-                all_paths.append((current_path.copy()))            
+                all_paths.append((current_path.copy()))
 
         current_path.pop()
     else:
         for pos in neighbors:
             board.board[pos.y][pos.x].color = color
+            if opti.border_cell_accessibility == BorderCellAccessibility.CHECK and not is_cell_on_edge_accessible(board, pos):
+                board.board[pos.y][pos.x].color = ""
+                continue
             if (opti.check_reachable == CheckReachable.NEAR_2_POINTS and count_points_around(board, pos) >= 2) \
                 or (opti.check_reachable == CheckReachable.EVERY_CASE) \
                 or (opti.check_reachable == CheckReachable.NEAR_3_THINGS and count_things_around(board, pos) >= 3):
@@ -113,13 +117,7 @@ def create_all_paths(board, opti):
     all_shortest_paths = {}
     if opti.reachability_check_method == ReachabilityCheckMethod.SHORTEST_PATH_FIRST:
         all_shortest_paths = find_all_shortest_paths(board)
-    # print(all_shortest_paths)
-    
-    # Print the is_connected status for each cell in the board
-    # print("Initial is_connected status for the board:")
-    # for y in range(board.height):
-    #     for x in range(board.width):
-    #         print(f"Position ({x}, {y}): is_connected = {board.board[y][x].is_connected}")
+
     for color in board.pos_points:
 
         color_paths = []
@@ -128,31 +126,15 @@ def create_all_paths(board, opti):
 
         dfs_for_all_path(board, curr_color_pos, color, [], color_paths, opti, all_shortest_paths)
         
+        if opti.path_testing_order == PathTestingOrder.ASCENDING:
+            color_paths.sort(key=len)
+        elif opti.path_testing_order == PathTestingOrder.DESCENDING:
+            color_paths.sort(key=len, reverse=True)
+
         all_paths.append(color_paths.copy())
         board.board[curr_color_pos.y][curr_color_pos.x].is_connected = False
-
     return all_paths
 
-
-
-def find_and_apply_valid_combinations(board, all_paths, opti):
-    """
-    Find and apply valid combinations of paths on the board.
-    """
-    valid_combos = find_valid_combinations_with_board(all_paths, len(all_paths), [], 0, [], board, opti)
-    apply_valid_combinations(board, valid_combos)
-
-
-def apply_valid_combinations(board, valid_combos):
-    """
-    Apply valid combinations of paths on the board.
-    """
-    for combo in valid_combos:
-        for path in combo:
-            color = board.board[path[0].y][path[0].x].color  # Couleur du premier point du chemin
-
-            for pos in path:
-                board.board[pos.y][pos.x].color = color  # Mise à jour de la couleur sur la planche
 
 
 def find_valid_combinations_with_board(all_paths, nb_paths, current_combo, index, valid_combos, board, opti):
@@ -189,3 +171,21 @@ def find_valid_combinations_with_board(all_paths, nb_paths, current_combo, index
                 board.board[path[0].y][path[0].x].is_connected = False    # Déconnecter le premier point du chemin
 
     return valid_combos
+
+def apply_valid_combinations(board, valid_combos):
+    """
+    Apply valid combinations of paths on the board.
+    """
+    for combo in valid_combos:
+        for path in combo:
+            color = board.board[path[0].y][path[0].x].color  # Couleur du premier point du chemin
+
+            for pos in path:
+                board.board[pos.y][pos.x].color = color  # Mise à jour de la couleur sur la planche
+
+def find_and_apply_valid_combinations(board, all_paths, opti):
+    """
+    Find and apply valid combinations of paths on the board.
+    """
+    valid_combos = find_valid_combinations_with_board(all_paths, len(all_paths), [], 0, [], board, opti)
+    apply_valid_combinations(board, valid_combos)

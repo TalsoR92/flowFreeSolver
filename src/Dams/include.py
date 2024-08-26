@@ -6,6 +6,8 @@ from Dams.class_files.Point import *
 from Dams.class_files.Position import *
 from Dams.class_files.Case import *
 from Dams.class_files.Opti import *
+from Dams.class_files.Counter import *
+from Dams.class_files.Timer import *
 
 import json
 import time

@@ -16,7 +16,21 @@ class ReachabilityCheckMethod(Enum):
     """
     DFS = 0                 # Use Depth-First Search (DFS) for reachability check
     SHORTEST_PATH_FIRST = 1 # Check using the shortest path first
+    
+class PathTestingOrder(Enum):
+    """
+    Enumeration for different orders to test paths
+    """
+    NORMAL = 0              # Test paths in the normal order
+    ASCENDING = 1           # Test paths in ascending order
+    DESCENDING = 2          # Test paths in descending ordercc
 
+class BorderCellAccessibility(Enum):
+    """
+    Enumeration for different conditions when checking edge cell accessibility
+    """
+    NONE = 0                # No check for edge cell accessibility
+    CHECK = 1               # Check edge cell accessibility
 
 class Opti:
     """
@@ -24,7 +38,9 @@ class Opti:
     """
     def __init__(self, 
                  check_reachable: CheckReachable = CheckReachable.NONE, 
-                 reachability_check_method: ReachabilityCheckMethod = ReachabilityCheckMethod.DFS):
+                 reachability_check_method: ReachabilityCheckMethod = ReachabilityCheckMethod.DFS,
+                 path_testing_order: PathTestingOrder = PathTestingOrder.NORMAL,
+                 border_cell_accessibility: BorderCellAccessibility = BorderCellAccessibility.NONE):
         
         if not isinstance(check_reachable, CheckReachable): # Validate if check_reachable is a valid value from the CheckReachable enumeration
             raise ValueError("check_reachable must be a value from the CheckReachable enumeration")
@@ -32,5 +48,13 @@ class Opti:
         if not isinstance(reachability_check_method, ReachabilityCheckMethod): # Validate if reachability_check_method is a valid value from the ReachabilityCheckMethod enumeration
             raise ValueError("reachability_check_method must be a value from the ReachabilityCheckMethod enumeration")
         
+        if not isinstance(path_testing_order, PathTestingOrder): # Validate if path_testing_order is a valid value from the PathTestingOrder enumeration
+            raise ValueError("path_testing_order must be a value from the PathTestingOrder enumeration")
+        
+        if not isinstance(border_cell_accessibility, BorderCellAccessibility): # Validate if border_cell_accessibility is a valid value from the BorderCellAccessibility enumeration
+            raise ValueError("border_cell_accessibility must be a value from the BorderCellAccessibility enumeration")
+        
         self.check_reachable = check_reachable
         self.reachability_check_method = reachability_check_method
+        self.path_testing_order = path_testing_order
+        self.border_cell_accessibility = BorderCellAccessibility.NONE
