@@ -8,6 +8,48 @@ from collections import deque
 import bisect
 from copy import deepcopy
 
+def is_surrounding_cell_blocked(board: Board, pos: Position, color: str) -> bool:
+    """
+    Determine if the cell at position `pos` is accessible.
+    """
+    count = 0
+    if pos.x - 1 >= 0:
+        if board.board[pos.y][pos.x - 1].color == color:
+            count += 1
+    if pos.y - 1 >= 0:
+        if board.board[pos.y - 1][pos.x].color == color:
+            count += 1
+    if pos.x + 1 < board.width:
+        if board.board[pos.y][pos.x + 1].color == color:
+            count += 1
+    if pos.y + 1 < board.height:
+        if board.board[pos.y + 1][pos.x].color == color:
+            count += 1
+
+    return count >= 3
+
+def are_surrounding_cells_blocked(board: Board, pos: Position) -> bool:
+    """
+    la fonction  vérifie si les cases autour d'une pos sont accessible,
+    le but est de checker si ces cases possèdes au moins 3 voisins de sa couleur
+    si c'est le cas tu renvoie false sinon true
+    """
+    color = board.board[pos.y][pos.x].color
+    if pos.x - 1 >= 0 and not board.board[pos.y][pos.x - 1].color:
+        if is_surrounding_cell_blocked(board, Position(pos.x - 1, pos.y), color):
+            return True
+    if pos.y - 1 >= 0 and not board.board[pos.y - 1][pos.x].color:
+        if is_surrounding_cell_blocked(board, Position(pos.x, pos.y - 1), color):
+            return True
+    if pos.x + 1 < board.width and not board.board[pos.y][pos.x + 1].color:
+        if is_surrounding_cell_blocked(board, Position(pos.x + 1, pos.y), color):
+            return True
+    if pos.y + 1 < board.height and not board.board[pos.y + 1][pos.x].color:
+        if is_surrounding_cell_blocked(board, Position(pos.x, pos.y + 1), color):
+            return True
+    return False
+
+
 def is_cell_on_edge_accessible(board: Board, pos: Position) -> bool:
     """
     This function verifies that when the cell at position `pos` touches the edge of the board,

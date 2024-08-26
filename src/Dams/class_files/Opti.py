@@ -23,7 +23,7 @@ class PathTestingOrder(Enum):
     """
     NORMAL = 0              # Test paths in the normal order
     ASCENDING = 1           # Test paths in ascending order
-    DESCENDING = 2          # Test paths in descending ordercc
+    DESCENDING = 2          # Test paths in descending order
 
 class BorderCellAccessibility(Enum):
     """
@@ -31,6 +31,13 @@ class BorderCellAccessibility(Enum):
     """
     NONE = 0                # No check for edge cell accessibility
     CHECK = 1               # Check edge cell accessibility
+
+class SurroundingCellBlockedCheck(Enum):
+    """
+    Enumeration for different conditions when checking if surrounding cells are blocked
+    """
+    NONE = 0                # No check for surrounding cell blocked
+    CHECK = 1               # Check if surrounding cells are blocked
 
 class Opti:
     """
@@ -40,7 +47,8 @@ class Opti:
                  check_reachable: CheckReachable = CheckReachable.NONE, 
                  reachability_check_method: ReachabilityCheckMethod = ReachabilityCheckMethod.DFS,
                  path_testing_order: PathTestingOrder = PathTestingOrder.NORMAL,
-                 border_cell_accessibility: BorderCellAccessibility = BorderCellAccessibility.NONE):
+                 border_cell_accessibility: BorderCellAccessibility = BorderCellAccessibility.NONE,
+                 surrounding_cell_blocked_check: SurroundingCellBlockedCheck = SurroundingCellBlockedCheck.NONE):
         
         if not isinstance(check_reachable, CheckReachable): # Validate if check_reachable is a valid value from the CheckReachable enumeration
             raise ValueError("check_reachable must be a value from the CheckReachable enumeration")
@@ -53,8 +61,12 @@ class Opti:
         
         if not isinstance(border_cell_accessibility, BorderCellAccessibility): # Validate if border_cell_accessibility is a valid value from the BorderCellAccessibility enumeration
             raise ValueError("border_cell_accessibility must be a value from the BorderCellAccessibility enumeration")
+            
+        if not isinstance(surrounding_cell_blocked_check, SurroundingCellBlockedCheck): # Validate if surrounding_cell_blocked_check is a valid value from the SurroundingCellBlockedCheck enumeration
+            raise ValueError("surrounding_cell_blocked_check must be a value from the SurroundingCellBlockedCheck enumeration")
         
         self.check_reachable = check_reachable
         self.reachability_check_method = reachability_check_method
         self.path_testing_order = path_testing_order
         self.border_cell_accessibility = BorderCellAccessibility.NONE
+        self.surrounding_cell_blocked_check = SurroundingCellBlockedCheck.NONE

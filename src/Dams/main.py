@@ -58,6 +58,7 @@ def main(flow_matrix, size_board, num_level):
         opti.reachability_check_method = ReachabilityCheckMethod.SHORTEST_PATH_FIRST
         opti.path_testing_order = PathTestingOrder.NORMAL  
         opti.border_cell_accessibility = BorderCellAccessibility.CHECK
+        opti.surrounding_cell_blocked_check = SurroundingCellBlockedCheck.CHECK
         
         all_paths = create_all_paths(board, opti)  # Call the method to create all paths
         print("nb_paths:", sum_list(all_paths), "\n")

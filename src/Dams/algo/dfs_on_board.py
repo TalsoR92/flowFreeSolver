@@ -96,15 +96,22 @@ def dfs_for_all_path(board, pos, color, current_path, all_paths, opti, all_short
             if opti.border_cell_accessibility == BorderCellAccessibility.CHECK and not is_cell_on_edge_accessible(board, pos):
                 board.board[pos.y][pos.x].color = ""
                 continue
+            if opti.surrounding_cell_blocked_check == SurroundingCellBlockedCheck.CHECK and are_surrounding_cells_blocked(board, pos):
+                board.board[pos.y][pos.x].color = ""
+                continue
+            
             if (opti.check_reachable == CheckReachable.NEAR_2_POINTS and count_points_around(board, pos) >= 2) \
                 or (opti.check_reachable == CheckReachable.EVERY_CASE) \
                 or (opti.check_reachable == CheckReachable.NEAR_3_THINGS and count_things_around(board, pos) >= 3):
                 if opti.reachability_check_method == ReachabilityCheckMethod.SHORTEST_PATH_FIRST:
                     if is_all_colors_reachable_shortest_paths_first(board, all_shortest_paths):
+                        # print(board)
                         dfs_for_all_path(board, pos, color, current_path, all_paths, opti, all_shortest_paths)
                 elif is_all_colors_reachable(board, color):
+                    # print(board)
                     dfs_for_all_path(board, pos, color, current_path, all_paths, opti, all_shortest_paths)
             else:
+                # print(board)
                 dfs_for_all_path(board, pos, color, current_path, all_paths, opti, all_shortest_paths)
                 
             board.board[pos.y][pos.x].color = ""

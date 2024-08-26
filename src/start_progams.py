@@ -112,7 +112,7 @@ def print_stats(name, execution_times, size_start=5, size_end=9):
 def main():
     # run_all_level("Dams")
     # run_all_level("Dams", 9, 9, 15)
-    run_all_level("Dams", 9, 9, 1, 5)
+    run_all_level("Dams", 9, 9)
     # run_one_level("Dams", 7, 7)
     # print("\n----------------------------------------\n")
     # run_one_level("Dams", 6, 3)
